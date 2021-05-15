@@ -1,0 +1,37 @@
+{
+  "name": "orange-dragonfly-router",
+  "version": "0.1.0",
+  "description": "Orange Dragonfly Router",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/charger88/orange-dragonfly-router.git"
+  },
+  "scripts": {
+    "test": "jest",
+    "speedtest": "node tests/speedtest.js",
+    "lint": "eslint ./"
+  },
+  "keywords": [
+    "framework", "router"
+  ],
+  "author": {
+    "name": "Michael Kelner",
+    "email": "mikhail.kelner@gmail.com",
+    "url": "https://michaelkelner.com/"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/charger88/orange-dragonfly-router/issues"
+  },
+  "homepage": "https://github.com/charger88/orange-dragonfly-router#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "^7.25.0",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.3.1",
+    "jest": "^26.6.3"
+  }
+}
