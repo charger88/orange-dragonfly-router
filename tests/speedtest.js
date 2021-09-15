@@ -1,6 +1,6 @@
-const { Router } = require('./../index')
+const { OrangeDragonflyRouter } = require('./../index')
 
-const router = Router.init()
+const router = OrangeDragonflyRouter.init()
   .register('/', '*', 'root')
   .register('/users', '*', 'users')
   .register('/users/{#id}', '*', 'user item')

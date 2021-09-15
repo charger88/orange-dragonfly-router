@@ -2,11 +2,11 @@
 
 This package provides generic routing functionality. It is optimized for HTTP requests, but it can be used for other tasks as well.
 
-## Router
+## OrangeDragonflyRouter
 
 Main class of the package is `Router`.
 
-### `Router.init`
+### `OrangeDragonflyRouter.init`
 
 Static singleton initiation method.
 

@@ -2,7 +2,7 @@
  * Class implements generic routing functionality
  * It is optimized for HTTP requests, but it can be used for other tasks as well
  */
-class Router {
+class OrangeDragonflyRouter {
   /**
    * Create router
    */
@@ -16,7 +16,7 @@ class Router {
 
   /**
    * Singleton init method
-   * @return {Router}
+   * @return {OrangeDragonflyRouter}
    */
   static init () {
     if (!this._router) this._router = new this()
@@ -26,7 +26,7 @@ class Router {
   /**
    * If you want to use this router for something other than HTTP routes, you may need to change separator from "/" to something else like " "
    * @param separator
-   * @return {Router}
+   * @return {OrangeDragonflyRouter}
    */
   setSeparator (separator) {
     this._separator = separator
@@ -38,7 +38,7 @@ class Router {
    * @param {string} pathPattern Pattern with wildcards defined as {param_name} or {#param_name} (for integers)
    * @param {string|string[]} methods List of methods for the path (one path can be registered multiple times with different methods)
    * @param {*} routeObject Data to be returned as property "route_object" by method "route". It can be callback, object, string or however else you want to identify the route
-   * @return {Router}
+   * @return {OrangeDragonflyRouter}
    */
   register (pathPattern, methods, routeObject) {
     if (!Array.isArray(methods)) methods = [methods]
@@ -72,7 +72,7 @@ class Router {
   /**
    * Registers "route_object" for the default path
    * @param {*} routeObject Data to be returned as property "route_object" by method "route". It can be callback, object, string or however else you want to identify the route
-   * @return {Router}
+   * @return {OrangeDragonflyRouter}
    */
   registerDefault (routeObject) {
     this._defaultRouteObject = routeObject
@@ -114,4 +114,4 @@ class Router {
   }
 }
 
-module.exports = Router
+module.exports = OrangeDragonflyRouter

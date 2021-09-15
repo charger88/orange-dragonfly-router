@@ -1,9 +1,9 @@
 /* eslint-disable no-undef */
 
-const { Router } = require('./../index')
+const { OrangeDragonflyRouter } = require('./../index')
 
 const generateRouter = () => {
-  return Router.init()
+  return OrangeDragonflyRouter.init()
     .register('/users/{#id}', 'GET', 'user route')
     .register('/users/{#id}/{action}', 'GET', 'user action route')
     .register('/authorization', 'GET', 'authorization route')
@@ -36,7 +36,7 @@ test('successful params', () => {
 })
 
 test('not HTTP scenario', () => {
-  const router = Router.init()
+  const router = OrangeDragonflyRouter.init()
     .setSeparator(' ')
     .register('I want to order {#n} {item} {time}', '', 'Food order with date')
     .register('I want to order {#n} {item}', '', 'Food order')

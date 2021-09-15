@@ -1,3 +1,3 @@
-const Router = require('./components/router')
+const OrangeDragonflyRouter = require('./components/router')
 
-module.exports = { Router }
+module.exports = { OrangeDragonflyRouter }
