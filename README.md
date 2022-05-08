@@ -66,9 +66,9 @@ Example:
 ## Example
 
 ```javascript
-const { Router } = require('orange-dragonfly-router')
+const { OrangeDragonflyRouter } = require('orange-dragonfly-router')
 
-Router.init()
+OrangeDragonflyRouter.init()
  .register('/users/{#id}', 'GET', () => console.log('user route'))
  .register('/users/{#id}/{action}', 'GET', () => console.log('user action route'))
  .register('/authorization', 'GET', () => console.log('authorization route'))
