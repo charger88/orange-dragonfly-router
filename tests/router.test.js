@@ -27,7 +27,7 @@ test('successful routing', () => {
 
 test('successful params', () => {
   const router = generateRouter()
-
+  expect(Object.keys(router.route('/users/15', 'get').params)).toEqual(['id'])
   expect(router.route('/users/15', 'get').params.id).toBe(15)
   expect(router.route('/users/15/', 'get').params.id).toBe(15)
   expect(router.route('/users/15/test', 'get').params.id).toBe(15)

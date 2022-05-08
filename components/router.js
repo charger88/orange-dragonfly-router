@@ -97,8 +97,9 @@ class OrangeDragonflyRouter {
       } else {
         match = path.match(route.pattern)
         if (match) {
-          for (let i = 1; i <= match.length; i++) {
-            params[route.params[i - 1]] = route.integers.includes(route.params[i - 1]) ? parseInt(match[i]) : match[i]
+          match = Array.from(match).slice(1)
+          for (const [i, v] of Object.entries(match)) {
+            params[route.params[i]] = route.integers.includes(route.params[i]) ? parseInt(v) : v
           }
           routeMatch = route
         }
