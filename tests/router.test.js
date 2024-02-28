@@ -35,6 +35,11 @@ test('successful params', () => {
   expect(router.route('/users/15/test/', 'get').params.action).toBe('test')
 })
 
+test('original pattern', () => {
+  const router = generateRouter()
+  expect(router.route('/users/15', 'get').route.pathPattern).toBe('/users/{#id}')
+})
+
 test('not HTTP scenario', () => {
   const router = OrangeDragonflyRouter.init()
     .setSeparator(' ')

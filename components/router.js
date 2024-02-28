@@ -65,7 +65,7 @@ class OrangeDragonflyRouter {
     } else {
       pattern = pathPattern
     }
-    this._routes.push({ pattern, params, methods, integers, routeObject })
+    this._routes.push({ pattern, pathPattern, params, methods, integers, routeObject })
     return this
   }
 
@@ -106,11 +106,11 @@ class OrangeDragonflyRouter {
       }
       if (routeMatch) {
         if (route.methods.includes(method) || route.methods.includes('*')) {
-          return { path, method, params, route_object: route.routeObject, is_default: false }
+          return { path, method, params, route: { ...route }, route_object: route.routeObject, is_default: false }
         }
       }
     }
-    if (this._defaultRouteObject) return { path, method, params: {}, route_object: this._defaultRouteObject, is_default: true }
+    if (this._defaultRouteObject) return { path, method, params: {}, route: null, route_object: this._defaultRouteObject, is_default: true }
     throw new Error('Route not found, default route is not defined')
   }
 }
