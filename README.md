@@ -2,9 +2,62 @@
 
 This package provides generic routing functionality. It is optimized for HTTP requests, but it can be used for other tasks as well.
 
+## Installation
+
+```
+npm install orange-dragonfly-router
+```
+
+## Usage
+
+### CommonJS
+
+```javascript
+const { OrangeDragonflyRouter } = require('orange-dragonfly-router')
+```
+
+### ESM
+
+```javascript
+import { OrangeDragonflyRouter } from 'orange-dragonfly-router'
+```
+
+### TypeScript
+
+```typescript
+import { OrangeDragonflyRouter } from 'orange-dragonfly-router'
+import type { RouteResult } from 'orange-dragonfly-router'
+```
+
+The class supports a generic type parameter for route objects:
+
+```typescript
+const router = OrangeDragonflyRouter.init<() => void>()
+  .register('/users/{#id}', 'GET', () => console.log('user route'))
+  .registerDefault(() => console.log('default route'))
+
+const result = router.route('/users/15', 'GET')
+result.route_object() // typed as () => void
+```
+
 ## OrangeDragonflyRouter
 
-Main class of the package is `Router`.
+Main class of the package.
+
+### Constructor
+
+Creates a new router instance. Accepts an optional `options` object.
+
+```javascript
+const router = new OrangeDragonflyRouter({ caseSensitive: true })
+```
+
+#### Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `caseSensitive` | `boolean` | `false` | When `true`, path matching is case-sensitive. When `false` (default), `/Users` matches `/users`, `/USERS`, etc. |
+| `separator` | `string` | `'/'` | Character used to split path segments. Change to `' '` (space) or another character for non-HTTP routing. Must not be empty. |
 
 ### `OrangeDragonflyRouter.init`
 
@@ -12,9 +65,30 @@ Static singleton initiation method.
 
 Returns link to the router object.
 
+**Note:** `init()` returns a shared singleton instance. All calls to `init()` return the same router, regardless of the generic type parameter. Routes registered through one reference are visible to all others. If you need a fresh router, use `new OrangeDragonflyRouter()` instead.
+
+### `getOption`
+
+Returns the value of the specified option.
+
+* `option` - Option name (e.g. `'caseSensitive'`)
+
+### `setOption`
+
+Sets the value of the specified option.
+
+* `option` - Option name
+* `value` - New value for the option
+
+Returns link to object itself
+
+**Note:** `caseSensitive` and `separator` affect how routes are compiled. Set these options before calling `register`.
+
 ### `setSeparator`
 
-If you want to use this router for something other than HTTP routes, you may need to change separator from "/" to something else like " "
+**Deprecated.** Use `setOption('separator', value)` instead.
+
+Sets the separator character. Throws an error if the value is empty.
 
 Returns link to object itself
 
@@ -48,6 +122,7 @@ Returns object:
 * `path` - value provided as `path` argument
 * `method` - value provided as `method` argument (transformed to uppercase)
 * `params` - parameters extracted from the path
+* `route` - route record object (or null if default route was used)
 * `route_object` - Custom data registered via method `register`
 * `is_default` - Shows if default route was used
 
@@ -66,7 +141,7 @@ Example:
 ## Example
 
 ```javascript
-const { OrangeDragonflyRouter } = require('orange-dragonfly-router')
+import { OrangeDragonflyRouter } from 'orange-dragonfly-router'
 
 OrangeDragonflyRouter.init()
  .register('/users/{#id}', 'GET', () => console.log('user route'))
@@ -75,7 +150,7 @@ OrangeDragonflyRouter.init()
  .registerDefault(() => console.log('default route'))
 
 function callbackForHTTPRequests(path, method) {
-  const route = Router.init().route(path, method);
+  const route = OrangeDragonflyRouter.init().route(path, method);
   route.route_object();
   console.log(route.params);
 }
@@ -90,4 +165,4 @@ Expected output:
 
 ```
 
-See [tests](./tests/router.test.js) for more examples
+See [tests](./tests/router.test.ts) for more examples

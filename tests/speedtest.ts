@@ -1,6 +1,6 @@
-const { OrangeDragonflyRouter } = require('./../index')
+import { OrangeDragonflyRouter } from '../src/index'
 
-const router = OrangeDragonflyRouter.init()
+const router = OrangeDragonflyRouter.init<string>()
   .register('/', '*', 'root')
   .register('/users', '*', 'users')
   .register('/users/{#id}', '*', 'user item')
