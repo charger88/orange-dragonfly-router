@@ -60,6 +60,14 @@ export class OrangeDragonflyRouter<T = unknown> {
   }
 
   /**
+   * Returns registered routes in registration order
+   * @returns Shallow copy of registered route records
+   */
+  get routes(): RouteRecord<T>[] {
+    return [...this._routes]
+  }
+
+  /**
    * Sets the value of the specified option
    * @param option - Option name
    * @param value - New value for the option

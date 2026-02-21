@@ -73,6 +73,12 @@ Returns the value of the specified option.
 
 * `option` - Option name (e.g. `'caseSensitive'`)
 
+### `routes`
+
+Returns registered routes in registration order.
+
+Returns a shallow-copied array of route records, so mutating the returned array itself does not change router state.
+
 ### `setOption`
 
 Sets the value of the specified option.

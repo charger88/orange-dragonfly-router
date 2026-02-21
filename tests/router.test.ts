@@ -57,6 +57,23 @@ test('not HTTP scenario', () => {
   expect(router.route('I want to order 5 hamburgers tomorrow', '').params.time).toBe('tomorrow')
 })
 
+test('routes getter returns registered routes in order', () => {
+  const router = new OrangeDragonflyRouter<string>()
+    .register('/users/{#id}', 'GET', 'user route')
+    .register('/authorization', ['GET', 'POST'], 'authorization route')
+
+  const routes = router.routes
+
+  expect(routes).toHaveLength(2)
+  expect(routes[0].pathPattern).toBe('/users/{#id}')
+  expect(routes[0].routeObject).toBe('user route')
+  expect(routes[1].pathPattern).toBe('/authorization')
+  expect(routes[1].methods).toEqual(['GET', 'POST'])
+
+  routes.pop()
+  expect(router.routes).toHaveLength(2)
+})
+
 test('route not found without default throws error', () => {
   const router = new OrangeDragonflyRouter<string>()
     .register('/test', 'GET', 'test')
