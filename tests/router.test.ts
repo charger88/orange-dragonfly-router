@@ -1,7 +1,7 @@
-import { OrangeDragonflyRouter } from '../src/index'
+import { ODRouter } from '../src/index'
 
 const generateRouter = () => {
-  return OrangeDragonflyRouter.init<string>()
+  return ODRouter.init<string>()
     .register('/users/{#id}', 'GET', 'user route')
     .register('/users/{#id}/{action}', 'GET', 'user action route')
     .register('/authorization', 'GET', 'authorization route')
@@ -39,7 +39,7 @@ test('original pattern', () => {
 })
 
 test('not HTTP scenario', () => {
-  const router = OrangeDragonflyRouter.init<string>()
+  const router = ODRouter.init<string>()
     .setOption('separator', ' ')
     .register('I want to order {#n} {item} {time}', '', 'Food order with date')
     .register('I want to order {#n} {item}', '', 'Food order')
@@ -58,7 +58,7 @@ test('not HTTP scenario', () => {
 })
 
 test('routes getter returns registered routes in order', () => {
-  const router = new OrangeDragonflyRouter<string>()
+  const router = new ODRouter<string>()
     .register('/users/{#id}', 'GET', 'user route')
     .register('/authorization', ['GET', 'POST'], 'authorization route')
 
@@ -75,14 +75,14 @@ test('routes getter returns registered routes in order', () => {
 })
 
 test('route not found without default throws error', () => {
-  const router = new OrangeDragonflyRouter<string>()
+  const router = new ODRouter<string>()
     .register('/test', 'GET', 'test')
 
   expect(() => router.route('/missing', 'GET')).toThrow('Route not found, default route is not defined')
 })
 
 test('wildcard method *', () => {
-  const router = new OrangeDragonflyRouter<string>()
+  const router = new ODRouter<string>()
     .register('/any', '*', 'wildcard route')
 
   expect(router.route('/any', 'GET').route_object).toBe('wildcard route')
@@ -91,7 +91,7 @@ test('wildcard method *', () => {
 })
 
 test('multiple methods as array', () => {
-  const router = new OrangeDragonflyRouter<string>()
+  const router = new ODRouter<string>()
     .register('/resource', ['GET', 'POST'], 'multi-method route')
     .registerDefault('default')
 
@@ -101,7 +101,7 @@ test('multiple methods as array', () => {
 })
 
 test('method matching is case-insensitive', () => {
-  const router = new OrangeDragonflyRouter<string>()
+  const router = new ODRouter<string>()
     .register('/test', 'get', 'found')
 
   expect(router.route('/test', 'GET').route_object).toBe('found')
@@ -110,7 +110,7 @@ test('method matching is case-insensitive', () => {
 })
 
 test('route result has correct structure', () => {
-  const router = new OrangeDragonflyRouter<string>()
+  const router = new ODRouter<string>()
     .register('/users/{#id}', 'GET', 'user')
     .registerDefault('default')
 
@@ -132,7 +132,7 @@ test('route result has correct structure', () => {
 })
 
 test('duplicate route registration uses first match', () => {
-  const router = new OrangeDragonflyRouter<string>()
+  const router = new ODRouter<string>()
     .register('/test', 'GET', 'first')
     .register('/test', 'GET', 'second')
 
@@ -140,7 +140,7 @@ test('duplicate route registration uses first match', () => {
 })
 
 test('same path with different methods', () => {
-  const router = new OrangeDragonflyRouter<string>()
+  const router = new ODRouter<string>()
     .register('/resource', 'GET', 'get handler')
     .register('/resource', 'POST', 'post handler')
 
@@ -149,7 +149,7 @@ test('same path with different methods', () => {
 })
 
 test('pipe character in path pattern is escaped', () => {
-  const router = new OrangeDragonflyRouter<string>()
+  const router = new ODRouter<string>()
     .register('/a|b', 'GET', 'literal pipe')
     .registerDefault('default')
 
@@ -159,14 +159,14 @@ test('pipe character in path pattern is escaped', () => {
 })
 
 test('root path routing', () => {
-  const router = new OrangeDragonflyRouter<string>()
+  const router = new ODRouter<string>()
     .register('/', 'GET', 'root')
 
   expect(router.route('/', 'GET').route_object).toBe('root')
 })
 
 test('case-insensitive routing by default (static pattern)', () => {
-  const router = new OrangeDragonflyRouter<string>()
+  const router = new ODRouter<string>()
     .register('/Users', 'GET', 'users')
     .registerDefault('default')
 
@@ -176,7 +176,7 @@ test('case-insensitive routing by default (static pattern)', () => {
 })
 
 test('case-insensitive routing by default (parameterized pattern)', () => {
-  const router = new OrangeDragonflyRouter<string>()
+  const router = new ODRouter<string>()
     .register('/Users/{#id}/Profile', 'GET', 'profile')
     .registerDefault('default')
 
@@ -186,7 +186,7 @@ test('case-insensitive routing by default (parameterized pattern)', () => {
 })
 
 test('case-sensitive routing with option (static pattern)', () => {
-  const router = new OrangeDragonflyRouter<string>({ caseSensitive: true })
+  const router = new ODRouter<string>({ caseSensitive: true })
     .register('/Users', 'GET', 'users')
     .registerDefault('default')
 
@@ -196,7 +196,7 @@ test('case-sensitive routing with option (static pattern)', () => {
 })
 
 test('case-sensitive routing with option (parameterized pattern)', () => {
-  const router = new OrangeDragonflyRouter<string>({ caseSensitive: true })
+  const router = new ODRouter<string>({ caseSensitive: true })
     .register('/Users/{#id}/Profile', 'GET', 'profile')
     .registerDefault('default')
 
@@ -205,25 +205,25 @@ test('case-sensitive routing with option (parameterized pattern)', () => {
 })
 
 test('duplicated parameters trigger error', () => {
-  const router = new OrangeDragonflyRouter()
+  const router = new ODRouter()
   expect(() => router.register('/test/{id}/value/{id}', 'GET', 'test value')).toThrow('Parameters duplication in the route /test/{id}/value/{id}')
 })
 
 test('duplicated parameters trigger error even with #', () => {
-  const router = new OrangeDragonflyRouter()
+  const router = new ODRouter()
   expect(() => router.register('/test/{#id}/value/{id}', 'GET', 'test value')).toThrow('Parameters duplication in the route /test/{#id}/value/{id}')
 })
 
 test('getOption returns current option value', () => {
-  const router = new OrangeDragonflyRouter<string>()
+  const router = new ODRouter<string>()
   expect(router.getOption('caseSensitive')).toBe(false)
 
-  const routerSensitive = new OrangeDragonflyRouter<string>({ caseSensitive: true })
+  const routerSensitive = new ODRouter<string>({ caseSensitive: true })
   expect(routerSensitive.getOption('caseSensitive')).toBe(true)
 })
 
 test('setOption updates option value', () => {
-  const router = new OrangeDragonflyRouter<string>()
+  const router = new ODRouter<string>()
   expect(router.getOption('caseSensitive')).toBe(false)
 
   router.setOption('caseSensitive', true)
@@ -231,7 +231,7 @@ test('setOption updates option value', () => {
 })
 
 test('setOption returns this for chaining', () => {
-  const router = new OrangeDragonflyRouter<string>()
+  const router = new ODRouter<string>()
     .setOption('caseSensitive', true)
     .register('/test', 'GET', 'found')
 
@@ -239,7 +239,7 @@ test('setOption returns this for chaining', () => {
 })
 
 test('separator option via constructor', () => {
-  const router = new OrangeDragonflyRouter<string>({ separator: ' ' })
+  const router = new ODRouter<string>({ separator: ' ' })
     .register('hello {name}', '', 'greeting')
 
   expect(router.route('hello world', '').route_object).toBe('greeting')
@@ -248,7 +248,7 @@ test('separator option via constructor', () => {
 })
 
 test('separator option via setOption', () => {
-  const router = new OrangeDragonflyRouter<string>()
+  const router = new ODRouter<string>()
     .setOption('separator', '.')
     .register('com.example.{action}', '', 'java style')
 
@@ -257,7 +257,7 @@ test('separator option via setOption', () => {
 })
 
 test('setSeparator still works (deprecated)', () => {
-  const router = new OrangeDragonflyRouter<string>()
+  const router = new ODRouter<string>()
     .setSeparator(' ')
     .register('ping {target}', '', 'ping')
 
@@ -266,21 +266,21 @@ test('setSeparator still works (deprecated)', () => {
 })
 
 test('empty separator throws in constructor', () => {
-  expect(() => new OrangeDragonflyRouter({ separator: '' })).toThrow('Option "separator" must not be empty')
+  expect(() => new ODRouter({ separator: '' })).toThrow('Option "separator" must not be empty')
 })
 
 test('empty separator throws in setOption', () => {
-  const router = new OrangeDragonflyRouter()
+  const router = new ODRouter()
   expect(() => router.setOption('separator', '')).toThrow('Option "separator" must not be empty')
 })
 
 test('empty separator throws in setSeparator', () => {
-  const router = new OrangeDragonflyRouter()
+  const router = new ODRouter()
   expect(() => router.setSeparator('')).toThrow('Option "separator" must not be empty')
 })
 
 test('separator is being properly escaped', () => {
-  const router = new OrangeDragonflyRouter<string>()
+  const router = new ODRouter<string>()
     .setOption('separator', '^')
     .register('very^unusual^{what}', '', 'very unusual')
 

@@ -1,4 +1,4 @@
-export interface RouterOptions {
+export interface ODRouterOptions {
   caseSensitive: boolean
   separator: string
 }
@@ -12,7 +12,7 @@ export interface RouteRecord<T = unknown> {
   routeObject: T
 }
 
-export interface RouteResult<T = unknown> {
+export interface ODRouterRouteResult<T = unknown> {
   path: string
   method: string
   params: Record<string, string | number>

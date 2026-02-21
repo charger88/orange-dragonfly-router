@@ -1,11 +1,11 @@
-import type { RouterOptions, RouteRecord, RouteResult } from './types'
+import type { ODRouterOptions, RouteRecord, ODRouterRouteResult } from './types'
 
-const DEFAULT_OPTIONS: RouterOptions = {
+const DEFAULT_OPTIONS: ODRouterOptions = {
   caseSensitive: false,
   separator: '/',
 }
 
-const OPTION_VALIDATORS: { [K in keyof RouterOptions]?: (value: RouterOptions[K]) => void } = {
+const OPTION_VALIDATORS: { [K in keyof ODRouterOptions]?: (value: ODRouterOptions[K]) => void } = {
   separator(value: string) {
     if (!value) throw new Error('Option "separator" must not be empty')
   },
@@ -15,28 +15,28 @@ const OPTION_VALIDATORS: { [K in keyof RouterOptions]?: (value: RouterOptions[K]
  * Class implements generic routing functionality
  * It is optimized for HTTP requests, but it can be used for other tasks as well
  */
-export class OrangeDragonflyRouter<T = unknown> {
+export class ODRouter<T = unknown> {
   private readonly _EXTRACT_PATH_PARAMS: RegExp
   private readonly _ESCAPE_CHARACTERS: RegExp
   private _routes: RouteRecord<T>[]
   private _defaultRouteObject: T | null
-  private _options: RouterOptions
+  private _options: ODRouterOptions
 
-  private static _router?: OrangeDragonflyRouter
+  private static _router?: ODRouter
 
   /**
    * Creates a new router instance
    * @param options - Partial router options to override defaults
    * @throws {Error} If any provided option value fails validation
    */
-  constructor(options?: Partial<RouterOptions>) {
+  constructor(options?: Partial<ODRouterOptions>) {
     this._EXTRACT_PATH_PARAMS = /{[#a-zA-Z0-9_.-]+}/g
     this._ESCAPE_CHARACTERS = /[.+*?^$|()[\]{}]/g
     this._routes = []
     this._defaultRouteObject = null
     this._options = { ...DEFAULT_OPTIONS, ...options }
     for (const [key, value] of Object.entries(this._options)) {
-      const validator = OPTION_VALIDATORS[key as keyof RouterOptions] as ((v: unknown) => void) | undefined
+      const validator = OPTION_VALIDATORS[key as keyof ODRouterOptions] as ((v: unknown) => void) | undefined
       if (validator) validator(value)
     }
   }
@@ -45,9 +45,9 @@ export class OrangeDragonflyRouter<T = unknown> {
    * Returns singleton router instance, creating one if it doesn't exist
    * @returns Shared router instance
    */
-  static init<U = unknown>(): OrangeDragonflyRouter<U> {
+  static init<U = unknown>(): ODRouter<U> {
     if (!this._router) this._router = new this()
-    return this._router as OrangeDragonflyRouter<U>
+    return this._router as ODRouter<U>
   }
 
   /**
@@ -55,7 +55,7 @@ export class OrangeDragonflyRouter<T = unknown> {
    * @param option - Option name
    * @returns Current value of the option
    */
-  getOption<K extends keyof RouterOptions>(option: K): RouterOptions[K] {
+  getOption<K extends keyof ODRouterOptions>(option: K): ODRouterOptions[K] {
     return this._options[option]
   }
 
@@ -74,8 +74,8 @@ export class OrangeDragonflyRouter<T = unknown> {
    * @returns This router instance for method chaining
    * @throws {Error} If the value fails validation
    */
-  setOption<K extends keyof RouterOptions>(option: K, value: RouterOptions[K]): this {
-    const validator = OPTION_VALIDATORS[option] as ((v: RouterOptions[K]) => void) | undefined
+  setOption<K extends keyof ODRouterOptions>(option: K, value: ODRouterOptions[K]): this {
+    const validator = OPTION_VALIDATORS[option] as ((v: ODRouterOptions[K]) => void) | undefined
     if (validator) validator(value)
     this._options[option] = value
     return this
@@ -148,7 +148,7 @@ export class OrangeDragonflyRouter<T = unknown> {
    * @returns Route result containing matched route data, extracted params, and route object
    * @throws {Error} If no route matches and no default route is registered
    */
-  route(path: string, method: string): RouteResult<T> {
+  route(path: string, method: string): ODRouterRouteResult<T> {
     while (path.endsWith(this._options.separator) && (path.length > 1)) path = path.slice(0, -1)
     method = method.toUpperCase()
     let routeMatch: RouteRecord<T> | null

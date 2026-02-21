@@ -13,26 +13,26 @@ npm install orange-dragonfly-router
 ### CommonJS
 
 ```javascript
-const { OrangeDragonflyRouter } = require('orange-dragonfly-router')
+const { ODRouter } = require('orange-dragonfly-router')
 ```
 
 ### ESM
 
 ```javascript
-import { OrangeDragonflyRouter } from 'orange-dragonfly-router'
+import { ODRouter } from 'orange-dragonfly-router'
 ```
 
 ### TypeScript
 
 ```typescript
-import { OrangeDragonflyRouter } from 'orange-dragonfly-router'
-import type { RouteResult } from 'orange-dragonfly-router'
+import { ODRouter } from 'orange-dragonfly-router'
+import type { ODRouterRouteResult } from 'orange-dragonfly-router'
 ```
 
 The class supports a generic type parameter for route objects:
 
 ```typescript
-const router = OrangeDragonflyRouter.init<() => void>()
+const router = ODRouter.init<() => void>()
   .register('/users/{#id}', 'GET', () => console.log('user route'))
   .registerDefault(() => console.log('default route'))
 
@@ -40,7 +40,7 @@ const result = router.route('/users/15', 'GET')
 result.route_object() // typed as () => void
 ```
 
-## OrangeDragonflyRouter
+## ODRouter
 
 Main class of the package.
 
@@ -49,7 +49,7 @@ Main class of the package.
 Creates a new router instance. Accepts an optional `options` object.
 
 ```javascript
-const router = new OrangeDragonflyRouter({ caseSensitive: true })
+const router = new ODRouter({ caseSensitive: true })
 ```
 
 #### Options
@@ -59,13 +59,13 @@ const router = new OrangeDragonflyRouter({ caseSensitive: true })
 | `caseSensitive` | `boolean` | `false` | When `true`, path matching is case-sensitive. When `false` (default), `/Users` matches `/users`, `/USERS`, etc. |
 | `separator` | `string` | `'/'` | Character used to split path segments. Change to `' '` (space) or another character for non-HTTP routing. Must not be empty. |
 
-### `OrangeDragonflyRouter.init`
+### `ODRouter.init`
 
 Static singleton initiation method.
 
 Returns link to the router object.
 
-**Note:** `init()` returns a shared singleton instance. All calls to `init()` return the same router, regardless of the generic type parameter. Routes registered through one reference are visible to all others. If you need a fresh router, use `new OrangeDragonflyRouter()` instead.
+**Note:** `init()` returns a shared singleton instance. All calls to `init()` return the same router, regardless of the generic type parameter. Routes registered through one reference are visible to all others. If you need a fresh router, use `new ODRouter()` instead.
 
 ### `getOption`
 
@@ -147,16 +147,16 @@ Example:
 ## Example
 
 ```javascript
-import { OrangeDragonflyRouter } from 'orange-dragonfly-router'
+import { ODRouter } from 'orange-dragonfly-router'
 
-OrangeDragonflyRouter.init()
+ODRouter.init()
  .register('/users/{#id}', 'GET', () => console.log('user route'))
  .register('/users/{#id}/{action}', 'GET', () => console.log('user action route'))
  .register('/authorization', 'GET', () => console.log('authorization route'))
  .registerDefault(() => console.log('default route'))
 
 function callbackForHTTPRequests(path, method) {
-  const route = OrangeDragonflyRouter.init().route(path, method);
+  const route = ODRouter.init().route(path, method);
   route.route_object();
   console.log(route.params);
 }

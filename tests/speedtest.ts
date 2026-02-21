@@ -1,6 +1,6 @@
-import { OrangeDragonflyRouter } from '../src/index'
+import { ODRouter } from '../src/index'
 
-const router = OrangeDragonflyRouter.init<string>()
+const router = ODRouter.init<string>()
   .register('/', '*', 'root')
   .register('/users', '*', 'users')
   .register('/users/{#id}', '*', 'user item')
