@@ -287,3 +287,23 @@ test('separator is being properly escaped', () => {
   expect(router.route('very^unusual^scenario', '').route_object).toBe('very unusual')
   expect(router.route('very^unusual^scenario', '').params.what).toBe('scenario')
 })
+
+test('{+param} matches strings containing separators', () => {
+  const router = new ODRouter<string>()
+    .register('/proxy/{+path}', 'GET', 'proxy')
+    .registerDefault('default')
+
+  expect(router.route('/proxy/a/b/c', 'GET').route_object).toBe('proxy')
+  expect(router.route('/proxy/a/b/c', 'GET').params.path).toBe('a/b/c')
+  expect(router.route('/proxy/value', 'GET').params.path).toBe('value')
+})
+
+test('{+param} can be followed by static suffix', () => {
+  const router = new ODRouter<string>()
+    .register('/proxy/{+path}/raw', 'GET', 'proxy raw')
+    .registerDefault('default')
+
+  expect(router.route('/proxy/a/b/c/raw', 'GET').route_object).toBe('proxy raw')
+  expect(router.route('/proxy/a/b/c/raw', 'GET').params.path).toBe('a/b/c')
+  expect(router.route('/proxy/raw', 'GET').route_object).toBe('default')
+})

@@ -30,7 +30,7 @@ export class ODRouter<T = unknown> {
    * @throws {Error} If any provided option value fails validation
    */
   constructor(options?: Partial<ODRouterOptions>) {
-    this._EXTRACT_PATH_PARAMS = /{[#a-zA-Z0-9_.-]+}/g
+    this._EXTRACT_PATH_PARAMS = /{[#+a-zA-Z0-9_.-]+}/g
     this._ESCAPE_CHARACTERS = /[.+*?^$|()[\]{}]/g
     this._routes = []
     this._defaultRouteObject = null
@@ -94,7 +94,7 @@ export class ODRouter<T = unknown> {
 
   /**
    * Registers a route pattern
-   * @param pathPattern - Pattern with wildcards defined as {param_name} or {#param_name} (for integers)
+   * @param pathPattern - Pattern with wildcards defined as {param_name}, {#param_name} (for integers), or {+param_name} (string incl. separators)
    * @param methods - HTTP method(s) for this route (e.g. 'GET', ['GET', 'POST'], or '*' for all)
    * @param routeObject - Data returned as "route_object" by {@link route}. Can be a callback, object, string, or any value
    * @returns This router instance for method chaining
@@ -109,11 +109,14 @@ export class ODRouter<T = unknown> {
     if (paramNames) {
       pattern = pathPattern.replace(this._ESCAPE_CHARACTERS, x => `\\${x}`)
       for (let pName of paramNames) {
-        pattern = pattern.replace(pName.replace('{', '\\{').replace('}', '\\}'), pName)
+        pattern = pattern.replace(pName.replace(this._ESCAPE_CHARACTERS, x => `\\${x}`), pName)
         if (pName.startsWith('{#')) {
           pattern = pattern.replace(pName, '([0-9]+)')
           pName = pName.slice(2, -1)
           integers.push(pName)
+        } else if (pName.startsWith('{+')) {
+          pattern = pattern.replace(pName, '(.+)')
+          pName = pName.slice(2, -1)
         } else {
           pattern = pattern.replace(pName, `([^${this._options.separator}]+)`)
           pName = pName.slice(1, -1)
