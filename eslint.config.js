@@ -1,6 +1,6 @@
-import js from "@eslint/js"
-import globals from "globals"
-import tseslint from "typescript-eslint"
+import js from '@eslint/js'
+import globals from 'globals'
+import tseslint from 'typescript-eslint'
 
 export default [
   js.configs.recommended,
@@ -8,7 +8,7 @@ export default [
   {
     languageOptions: {
       ecmaVersion: 2021,
-      sourceType: "module",
+      sourceType: 'module',
       globals: {
         ...globals.node,
       },
@@ -16,13 +16,14 @@ export default [
     plugins: {
     },
     rules: {
-      "semi": ["error", "never"],
-      "quotes": ["error", "single", { avoidEscape: true }],
-      "comma-dangle": ["error", "always-multiline"],
-      "space-before-function-paren": ["error", "never"],
+      'semi': ['error', 'never'],
+      'quotes': ['error', 'single', { avoidEscape: true }],
+      'comma-dangle': ['error', 'always-multiline'],
+      'space-before-function-paren': ['error', 'never'],
+      'indent': ['error', 2, { SwitchCase: 1 }],
     },
   },
   {
-    ignores: ["dist/**", "node_modules/**", "tests/**", "jest.config.cjs"],
+    ignores: ['dist/**', 'node_modules/**', 'tests/**', 'jest.config.cjs'],
   },
 ]

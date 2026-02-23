@@ -31,6 +31,7 @@
   "scripts": {
     "build": "tsup",
     "test": "jest",
+    "test:coverage": "jest --coverage",
     "speedtest": "npx tsx tests/speedtest.ts",
     "eslint": "eslint ./src",
     "eslint:fix": "eslint --fix ./src",
@@ -51,9 +52,9 @@
   },
   "homepage": "https://github.com/charger88/orange-dragonfly-router#readme",
   "devDependencies": {
-    "@eslint/js": "^9.39.2",
+    "@eslint/js": "^10.0.1",
     "@types/jest": "^30.0.0",
-    "eslint": "^9.39.2",
+    "eslint": "^10.0.1",
     "globals": "^17.3.0",
     "jest": "^30.2.0",
     "ts-jest": "^29.4.6",
