@@ -1,5 +1,12 @@
 import type { ODRouterOptions, RouteRecord, ODRouterRouteResult } from './types'
 
+type InternalRouteRecord<T = unknown> = RouteRecord<T> & {
+  staticLowerCasePattern: string | null
+  integerParams: boolean[]
+  hasWildcardMethod: boolean
+  isProxy: boolean
+}
+
 const DEFAULT_OPTIONS: ODRouterOptions = {
   caseSensitive: false,
   separator: '/',
@@ -17,7 +24,7 @@ const OPTION_VALIDATORS: { [K in keyof ODRouterOptions]?: (value: ODRouterOption
  */
 export class ODRouter<T = unknown> {
   private readonly _EXTRACT_PATH_PARAMS: RegExp
-  private _routes: RouteRecord<T>[]
+  private _routes: InternalRouteRecord<T>[]
   private _defaultRouteObject: T | null
   private _options: ODRouterOptions
 
@@ -41,11 +48,12 @@ export class ODRouter<T = unknown> {
 
   private _cloneRouteRecord(route: RouteRecord<T>): RouteRecord<T> {
     return {
-      ...route,
       pattern: typeof route.pattern === 'string' ? route.pattern : new RegExp(route.pattern.source, route.pattern.flags),
+      pathPattern: route.pathPattern,
       params: [...route.params],
       methods: [...route.methods],
       integers: [...route.integers],
+      routeObject: route.routeObject,
     }
   }
 
@@ -56,10 +64,6 @@ export class ODRouter<T = unknown> {
   private _buildSegmentPattern(): string {
     const separator = this._escapeRegex(this._options.separator)
     return `((?:(?!${separator}).)+)`
-  }
-
-  private _isProxyRoute(route: RouteRecord<T>): boolean {
-    return route.pathPattern.includes('{+')
   }
 
   /**
@@ -123,18 +127,23 @@ export class ODRouter<T = unknown> {
   register(pathPattern: string, methods: string | string[], routeObject: T): this {
     if (!Array.isArray(methods)) methods = [methods]
     methods = methods.map(v => v.toUpperCase())
+    const hasWildcardMethod = methods.includes('*')
     const paramNames = pathPattern.match(this._EXTRACT_PATH_PARAMS)
     const integers: string[] = []
     const params: string[] = []
+    const integerParams: boolean[] = []
+    let staticLowerCasePattern: string | null = null
     let pattern: string | RegExp
     if (paramNames) {
       pattern = this._escapeRegex(pathPattern)
       for (let pName of paramNames) {
+        let isInteger = false
         pattern = pattern.replace(this._escapeRegex(pName), pName)
         if (pName.startsWith('{#')) {
           pattern = pattern.replace(pName, '([0-9]+)')
           pName = pName.slice(2, -1)
           integers.push(pName)
+          isInteger = true
         } else if (pName.startsWith('{+')) {
           pattern = pattern.replace(pName, '(.+)')
           pName = pName.slice(2, -1)
@@ -146,12 +155,25 @@ export class ODRouter<T = unknown> {
           throw new Error(`Parameters duplication in the route ${pathPattern}`)
         }
         params.push(pName)
+        integerParams.push(isInteger)
       }
       pattern = new RegExp(`^${pattern}$`, this._options.caseSensitive ? '' : 'i')
     } else {
       pattern = pathPattern
+      staticLowerCasePattern = pathPattern.toLowerCase()
     }
-    this._routes.push({ pattern, pathPattern, params, methods, integers, routeObject })
+    this._routes.push({
+      pattern,
+      pathPattern,
+      params,
+      methods,
+      integers,
+      routeObject,
+      staticLowerCasePattern,
+      integerParams,
+      hasWildcardMethod,
+      isProxy: pathPattern.includes('{+'),
+    })
     return this
   }
 
@@ -173,33 +195,32 @@ export class ODRouter<T = unknown> {
    * @throws {Error} If no route matches and no default route is registered
    */
   route(path: string, method: string): ODRouterRouteResult<T> {
-    const separatorLength = this._options.separator.length
-    while (path.endsWith(this._options.separator) && (path.length > separatorLength)) path = path.slice(0, -separatorLength)
+    const separator = this._options.separator
+    const separatorLength = separator.length
+    while (path.endsWith(separator) && (path.length > separatorLength)) path = path.slice(0, -separatorLength)
     method = method.toUpperCase()
-    let deferredProxyMatch: RouteRecord<T> | null = null
+    const caseSensitive = this._options.caseSensitive
+    const normalizedPath = caseSensitive ? path : path.toLowerCase()
+    let deferredProxyMatch: InternalRouteRecord<T> | null = null
     let deferredProxyParams: Record<string, string | number> = {}
-    let routeMatch: RouteRecord<T> | null
-    let params: Record<string, string | number>
-    let match: RegExpMatchArray | null
+    let routeMatch: RegExpMatchArray | null | boolean
     for (const route of this._routes) {
-      routeMatch = null
-      params = {}
       if (typeof route.pattern === 'string') {
-        const isMatch = this._options.caseSensitive ? route.pattern === path : route.pattern.toLowerCase() === path.toLowerCase()
-        if (isMatch) routeMatch = route
+        routeMatch = caseSensitive ? route.pattern === path : route.staticLowerCasePattern === normalizedPath
       } else {
-        match = path.match(route.pattern)
-        if (match) {
-          const groups = Array.from(match).slice(1)
-          groups.forEach((v, i) => {
-            params[route.params[i]] = route.integers.includes(route.params[i]) ? parseInt(v, 10) : v
-          })
-          routeMatch = route
-        }
+        routeMatch = path.match(route.pattern)
       }
       if (routeMatch) {
-        if (route.methods.includes(method) || route.methods.includes('*')) {
-          if (this._isProxyRoute(route)) {
+        if (route.hasWildcardMethod || route.methods.includes(method)) {
+          const params: Record<string, string | number> = {}
+          if (Array.isArray(routeMatch)) {
+            for (let i = 1; i < routeMatch.length; i++) {
+              const paramIndex = i - 1
+              const value = routeMatch[i]
+              params[route.params[paramIndex]] = route.integerParams[paramIndex] ? parseInt(value, 10) : value
+            }
+          }
+          if (route.isProxy) {
             if (!deferredProxyMatch) {
               deferredProxyMatch = route
               deferredProxyParams = params
