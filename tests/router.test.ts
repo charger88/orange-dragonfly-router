@@ -264,6 +264,21 @@ test('setOption returns this for chaining', () => {
   expect(router.route('/test', 'GET').route_object).toBe('found')
 })
 
+test('setOption(caseSensitive) still affects previously registered static routes', () => {
+  const router = new ODRouter<string>()
+    .register('/Users', 'GET', 'users')
+    .registerDefault('default')
+
+  expect(router.route('/users', 'GET').route_object).toBe('users')
+
+  router.setOption('caseSensitive', true)
+  expect(router.route('/Users', 'GET').route_object).toBe('users')
+  expect(router.route('/users', 'GET').route_object).toBe('default')
+
+  router.setOption('caseSensitive', false)
+  expect(router.route('/users', 'GET').route_object).toBe('users')
+})
+
 test('separator option via constructor', () => {
   const router = new ODRouter<string>({ separator: ' ' })
     .register('hello {name}', '', 'greeting')
@@ -345,6 +360,16 @@ test('{+param} has lowest priority', () => {
   expect(router.route('/proxy/notnot', 'GET').route_object).toBe('proxy')
   expect(router.route('/proxy/not', 'GET').route_object).toBe('not-proxy')
   expect(router.route('/proxy/not2', 'GET').route_object).toBe('not-proxy-2')
+})
+
+test('multiple proxy matches keep the first deferred proxy route', () => {
+  const router = new ODRouter<string>()
+    .register('/proxy/b/{+path}', 'GET', 'zero proxy')
+    .register('/proxy/{+path}', 'GET', 'first proxy')
+    .register('/proxy/a/{+path}', 'GET', 'second proxy')
+    .registerDefault('default')
+  expect(router.route('/proxy/a/b', 'GET').route_object).toBe('first proxy')
+  expect(router.route('/proxy/b/b', 'GET').route_object).toBe('zero proxy')
 })
 
 test('{+param} can be followed by static suffix', () => {
