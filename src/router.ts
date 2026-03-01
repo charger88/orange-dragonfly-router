@@ -17,7 +17,6 @@ const OPTION_VALIDATORS: { [K in keyof ODRouterOptions]?: (value: ODRouterOption
  */
 export class ODRouter<T = unknown> {
   private readonly _EXTRACT_PATH_PARAMS: RegExp
-  private readonly _ESCAPE_CHARACTERS: RegExp
   private _routes: RouteRecord<T>[]
   private _defaultRouteObject: T | null
   private _options: ODRouterOptions
@@ -31,7 +30,6 @@ export class ODRouter<T = unknown> {
    */
   constructor(options?: Partial<ODRouterOptions>) {
     this._EXTRACT_PATH_PARAMS = /{[#+a-zA-Z0-9_.-]+}/g
-    this._ESCAPE_CHARACTERS = /[.+*?^$|()[\]{}]/g
     this._routes = []
     this._defaultRouteObject = null
     this._options = { ...DEFAULT_OPTIONS, ...options }
@@ -39,6 +37,29 @@ export class ODRouter<T = unknown> {
       const validator = OPTION_VALIDATORS[key as keyof ODRouterOptions] as ((v: unknown) => void) | undefined
       if (validator) validator(value)
     }
+  }
+
+  private _cloneRouteRecord(route: RouteRecord<T>): RouteRecord<T> {
+    return {
+      ...route,
+      pattern: typeof route.pattern === 'string' ? route.pattern : new RegExp(route.pattern.source, route.pattern.flags),
+      params: [...route.params],
+      methods: [...route.methods],
+      integers: [...route.integers],
+    }
+  }
+
+  private _escapeRegex(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  }
+
+  private _buildSegmentPattern(): string {
+    const separator = this._escapeRegex(this._options.separator)
+    return `((?:(?!${separator}).)+)`
+  }
+
+  private _isProxyRoute(route: RouteRecord<T>): boolean {
+    return route.pathPattern.includes('{+')
   }
 
   /**
@@ -64,7 +85,7 @@ export class ODRouter<T = unknown> {
    * @returns Shallow copy of registered route records
    */
   get routes(): RouteRecord<T>[] {
-    return [...this._routes]
+    return this._routes.map(route => this._cloneRouteRecord(route))
   }
 
   /**
@@ -107,9 +128,9 @@ export class ODRouter<T = unknown> {
     const params: string[] = []
     let pattern: string | RegExp
     if (paramNames) {
-      pattern = pathPattern.replace(this._ESCAPE_CHARACTERS, x => `\\${x}`)
+      pattern = this._escapeRegex(pathPattern)
       for (let pName of paramNames) {
-        pattern = pattern.replace(pName.replace(this._ESCAPE_CHARACTERS, x => `\\${x}`), pName)
+        pattern = pattern.replace(this._escapeRegex(pName), pName)
         if (pName.startsWith('{#')) {
           pattern = pattern.replace(pName, '([0-9]+)')
           pName = pName.slice(2, -1)
@@ -118,7 +139,7 @@ export class ODRouter<T = unknown> {
           pattern = pattern.replace(pName, '(.+)')
           pName = pName.slice(2, -1)
         } else {
-          pattern = pattern.replace(pName, `([^${this._options.separator}]+)`)
+          pattern = pattern.replace(pName, () => this._buildSegmentPattern())
           pName = pName.slice(1, -1)
         }
         if (params.includes(pName)) {
@@ -152,8 +173,11 @@ export class ODRouter<T = unknown> {
    * @throws {Error} If no route matches and no default route is registered
    */
   route(path: string, method: string): ODRouterRouteResult<T> {
-    while (path.endsWith(this._options.separator) && (path.length > 1)) path = path.slice(0, -1)
+    const separatorLength = this._options.separator.length
+    while (path.endsWith(this._options.separator) && (path.length > separatorLength)) path = path.slice(0, -separatorLength)
     method = method.toUpperCase()
+    let deferredProxyMatch: RouteRecord<T> | null = null
+    let deferredProxyParams: Record<string, string | number> = {}
     let routeMatch: RouteRecord<T> | null
     let params: Record<string, string | number>
     let match: RegExpMatchArray | null
@@ -175,8 +199,25 @@ export class ODRouter<T = unknown> {
       }
       if (routeMatch) {
         if (route.methods.includes(method) || route.methods.includes('*')) {
-          return { path, method, params, route: { ...route }, route_object: route.routeObject, is_default: false }
+          if (this._isProxyRoute(route)) {
+            if (!deferredProxyMatch) {
+              deferredProxyMatch = route
+              deferredProxyParams = params
+            }
+            continue
+          }
+          return { path, method, params, route: this._cloneRouteRecord(route), route_object: route.routeObject, is_default: false }
         }
+      }
+    }
+    if (deferredProxyMatch) {
+      return {
+        path,
+        method,
+        params: deferredProxyParams,
+        route: this._cloneRouteRecord(deferredProxyMatch),
+        route_object: deferredProxyMatch.routeObject,
+        is_default: false,
       }
     }
     if (this._defaultRouteObject !== null) return { path, method, params: {}, route: null, route_object: this._defaultRouteObject, is_default: true }

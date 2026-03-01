@@ -74,6 +74,19 @@ test('routes getter returns registered routes in order', () => {
   expect(router.routes).toHaveLength(2)
 })
 
+test('routes getter returns defensive copies of route records', () => {
+  const router = new ODRouter<string>()
+    .register('/users/{#id}', 'GET', 'user route')
+    .registerDefault('default')
+
+  const routes = router.routes
+  routes[0].methods[0] = 'POST'
+  routes[0].params[0] = 'renamed'
+
+  expect(router.route('/users/42', 'GET').route_object).toBe('user route')
+  expect(router.route('/users/42', 'GET').params).toEqual({ id: 42 })
+})
+
 test('route not found without default throws error', () => {
   const router = new ODRouter<string>()
     .register('/test', 'GET', 'test')
@@ -129,6 +142,19 @@ test('route result has correct structure', () => {
   expect(defaulted.route_object).toBe('default')
   expect(defaulted.is_default).toBe(true)
   expect(defaulted.route).toBeNull()
+})
+
+test('matched route metadata is isolated from internal route state', () => {
+  const router = new ODRouter<string>()
+    .register('/users/{#id}', 'GET', 'user')
+    .registerDefault('default')
+
+  const matched = router.route('/users/42', 'GET')
+  matched.route!.methods[0] = 'POST'
+  matched.route!.params[0] = 'renamed'
+
+  expect(router.route('/users/42', 'GET').route_object).toBe('user')
+  expect(router.route('/users/42', 'GET').params).toEqual({ id: 42 })
 })
 
 test('duplicate route registration uses first match', () => {
@@ -288,6 +314,17 @@ test('separator is being properly escaped', () => {
   expect(router.route('very^unusual^scenario', '').params.what).toBe('scenario')
 })
 
+test('multi-character separators are matched as full literal strings', () => {
+  const router = new ODRouter<string>({ separator: 'ab' })
+    .register('cmdab{name}', '', 'command')
+    .registerDefault('default')
+
+  expect(router.route('cmdabbeta', '').route_object).toBe('command')
+  expect(router.route('cmdabbeta', '').params.name).toBe('beta')
+  expect(router.route('cmdabbetaab', '').route_object).toBe('command')
+  expect(router.route('cmdabxxabyy', '').route_object).toBe('default')
+})
+
 test('{+param} matches strings containing separators', () => {
   const router = new ODRouter<string>()
     .register('/proxy/{+path}', 'GET', 'proxy')
@@ -296,6 +333,18 @@ test('{+param} matches strings containing separators', () => {
   expect(router.route('/proxy/a/b/c', 'GET').route_object).toBe('proxy')
   expect(router.route('/proxy/a/b/c', 'GET').params.path).toBe('a/b/c')
   expect(router.route('/proxy/value', 'GET').params.path).toBe('value')
+})
+
+test('{+param} has lowest priority', () => {
+  const router = new ODRouter<string>()
+    .register('/proxy/not2', 'GET', 'not-proxy-2')
+    .register('/proxy/{+path}', 'GET', 'proxy')
+    .register('/proxy/not', 'GET', 'not-proxy')
+    .registerDefault('default')
+
+  expect(router.route('/proxy/notnot', 'GET').route_object).toBe('proxy')
+  expect(router.route('/proxy/not', 'GET').route_object).toBe('not-proxy')
+  expect(router.route('/proxy/not2', 'GET').route_object).toBe('not-proxy-2')
 })
 
 test('{+param} can be followed by static suffix', () => {
